@@ -38,6 +38,7 @@ type FlowState = {
   setSelectedNode: (id: string | null) => void;
   updateEdgeCondition: (edgeId: string, condition: string) => void;
   deleteEdge: (edgeId: string) => void;
+  importFlow: (jsonString: string) => boolean;
 };
 
 export const useFlowStore = create<FlowState>((set, get) => ({
@@ -151,4 +152,66 @@ export const useFlowStore = create<FlowState>((set, get) => ({
     set({
       edges: get().edges.filter((e) => e.id !== edgeId),
     }),
+
+  importFlow: (jsonString) => {
+    try {
+      const parsedData = JSON.parse(jsonString);
+      const newNodes: Node<FlowNodeData>[] = [];
+      const newEdges: Edge[] = [];
+
+      let newStartNodeId: string | null = null;
+
+      let currentX = 100;
+      let currentY = 100;
+
+      parsedData.forEach((item: any) => {
+        newNodes.push({
+          id: item.id,
+          position: { x: currentX, y: currentY },
+          type: "customShape",
+          data: {
+            label: item.label || item.id,
+            description: item.description || "",
+            shape: item.shape || "rectangle",
+            isStart: !!item.isStart,
+            isEnd: !!item.isEnd,
+          },
+        });
+
+        if (item.isStart) newStartNodeId = item.id;
+
+        if (item.edges && Array.isArray(item.edges)) {
+          item.edges.forEach((edge: any) => {
+            newEdges.push({
+              id: `e${item.id}-${edge.to_node_id}`,
+              source: item.id,
+              target: edge.to_node_id,
+              label: edge.condition || "",
+              type: "smoothstep",
+              animated: true,
+              data: { condition: edge.condition || "" },
+            });
+          });
+        }
+
+        currentX += 250;
+        if (currentX > 800) {
+          currentX = 100;
+          currentY += 150;
+        }
+      });
+
+      set({
+        nodes: newNodes,
+        edges: newEdges,
+        startNodeId: newStartNodeId,
+        selectedNodeId: null,
+      });
+
+      return true; // Import successful
+    } catch (error) {
+      console.error("Invalid JSON provided to importFlow", error);
+      return false; // Import failed
+    }
+  },
 }));
