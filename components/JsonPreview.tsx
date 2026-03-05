@@ -4,6 +4,7 @@ import { useFlowStore } from "@/store/useFlowStore";
 import { useCallback, useEffect, useState } from "react";
 import ContentCopyIcon from "@mui/icons-material/ContentCopy";
 import SaveAsIcon from "@mui/icons-material/SaveAs";
+import { Download } from "@mui/icons-material";
 
 export default function JsonPreview() {
   const { nodes, edges, startNodeId, importFlow } = useFlowStore();
@@ -46,6 +47,16 @@ export default function JsonPreview() {
     }
   }, []);
 
+  const onDownloadJson = useCallback(() => {
+    const blob = new Blob([jsonText], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "flowchart.json";
+    a.click();
+    URL.revokeObjectURL(url);
+  }, [jsonText]);
+
   const missingDescriptions = nodes.filter((n) => !n.data.description).length;
   const hasStartNode = !!startNodeId && nodes.some((n) => n.id === startNodeId);
   const disconnectedNodes = nodes.filter(
@@ -80,6 +91,13 @@ export default function JsonPreview() {
             title="Apply Changes to Canvas"
           >
             <SaveAsIcon fontSize="small" />
+          </button>
+          <button
+            onClick={onDownloadJson}
+            className="p-1.5 text-slate-500 hover:text-purple-600 hover:bg-purple-50 rounded transition-colors"
+            title="Download JSON"
+          >
+            <Download fontSize="small" />
           </button>
         </div>
       </div>
