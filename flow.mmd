@@ -1,0 +1,53 @@
+%% AI GENERATED FLOWCHARTs
+graph TD
+    %% Define Styles
+    classDef store fill:#f3f4f6,stroke:#3b82f6,stroke-width:2px,color:#1e3a8a
+    classDef ui fill:#ffffff,stroke:#e5e7eb,stroke-width:2px,color:#374151
+    classDef engine fill:#eff6ff,stroke:#60a5fa,stroke-width:2px,color:#1e40af
+    classDef output fill:#f0fdf4,stroke:#22c55e,stroke-width:2px,color:#166534
+
+    subgraph "1. Global State Manager"
+        Z[(Zustand: useFlowStore)]:::store
+        N[nodes array]:::store
+        E[edges array]:::store
+        A[Actions: addNode, updateData...]:::store
+        Z --- N
+        Z --- E
+        Z --- A
+    end
+
+    subgraph "2. UI Layer (User Interacts)"
+        Toolbar[Toolbar UI]:::ui
+        Sidebar[Sidebar Form]:::ui
+        Canvas[FlowCanvas]:::ui
+    end
+
+    subgraph "3. Engine Layer (React Flow)"
+        RF[React Flow Canvas]:::engine
+    end
+
+    subgraph "4. Output Layer"
+        JSON[JsonPreview]:::output
+        Export[Final JSON Payload]:::output
+    end
+
+    %% Flow of Data (State -> UI)
+    N -->|Subscribes to Node Data| Canvas
+    N -->|Reads Selected Node| Sidebar
+    E -->|Reads Edges| Sidebar
+    N -->|Maps to Schema| JSON
+    E -->|Maps to Schema| JSON
+
+    %% Flow of Actions (UI -> State)
+    Toolbar -->|Calls addNode| A
+    Sidebar -->|Calls updateNodeData| A
+    Canvas -->|Fires Drag/Connect| RF
+    RF -->|Calls onNodesChange| A
+    RF -->|Calls onConnect| A
+
+    %% State Updates
+    A -.->|Updates| N
+    A -.->|Updates| E
+
+    %% Final Output
+    JSON -->|Transforms & Validates| Export
